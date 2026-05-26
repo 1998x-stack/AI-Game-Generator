@@ -1,6 +1,5 @@
 import { getSessionId } from "@/lib/middleware/session";
 import { getSession, createSession } from "@/lib/workspace/manager";
-import { initWorkspace } from "@/lib/workspace/init";
 import { createAgent } from "@/lib/agent/factory";
 import { baseTools } from "@/lib/agent/tool-defs";
 import { build } from "@/lib/build/bundler";
@@ -21,7 +20,6 @@ export async function POST(request: Request) {
   let session = getSession(sessionId);
   if (!session) {
     session = createSession(sessionId);
-    initWorkspace(session);
   }
 
   let agentMd = "";

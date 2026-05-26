@@ -15,11 +15,9 @@ function Header() {
           AI Game Generator
         </h1>
         <div className="flex items-center gap-3">
-          {!isConfigured && (
-            <span className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded">
-              API key required
-            </span>
-          )}
+          <span className={`text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950 px-2 py-0.5 rounded ${isConfigured ? "hidden" : ""}`}>
+            API key required
+          </span>
           <button
             onClick={() => setSettingsOpen(true)}
             className="p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
