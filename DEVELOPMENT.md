@@ -172,6 +172,49 @@ Client: <html lang="en" className="..." data-darkreader-mode="dynamic" data-dark
 
 This tells React to ignore attribute differences on `<html>` and its children caused by browser extensions. Without it, every page load logs a hydration error. The actual DOM is correct — the extension just mutates it before React can hydrate.
 
+### 21. DeepSeek reasoning_content Must Be Preserved AND Displayed
+
+DeepSeek thinking models (`deepseek-v4-pro`) return `reasoning_content` in assistant messages. Two requirements:
+
+1. **Must echo back to API**: The field must be passed back unchanged in all subsequent multi-turn API calls. Dropping it causes HTTP 400: `The reasoning_content in the thinking mode must be passed back to the API.`
+
+2. **Must display to user**: Reasoning content shows the model's thinking process. Emit it as an SSE `reasoning` event and render in an auto-expanded collapsible block. Users need to see WHY the model made certain tool calls.
+
+Fix involves three places:
+- `opencode-adapter.ts`: Capture reasoning_content from API response, emit as `reasoning` event, spread into `currentMessages` assistant entries
+- `chat/route.ts`: Forward `reasoning` SSE events
+- `MessageList.tsx`: `<ReasoningBlock>` collapsible component
+
+### 22. Session Resume via URL Parameter
+
+Sessions are tied to cookies, which can be lost (browser restart, cookie expiry, different device). To enable resume:
+
+1. **Auto-update URL**: On first chat, append `?session=<uuid>` to the URL via `window.history.replaceState`
+2. **Copy link button**: Show in header so users can bookmark/copy the session URL
+3. **URL → cookie restore**: On page load with `?session=`, set the `session_id` cookie from the URL param
+4. **Rebuild on resume**: On resume, call `/api/build` to rebuild the game from the existing workspace
+
+Pattern in `page.tsx`:
+```typescript
+// On mount: if ?session=X in URL → set cookie + rebuild game
+// Otherwise: read cookie → update URL with ?session=X
+```
+
+### 23. Tool Calls as Collapsible UI Elements
+
+Each tool call should render as an expandable details block showing:
+- Tool name and arguments (amber color scheme)
+- Collapsed by default, click to expand
+- Shows args as JSON and result (truncated to 300 chars)
+
+```tsx
+<details className="..." >
+  <summary>🔧 read_file(filePath)</summary>
+  <div>Args: {"filePath": "scripts/main.js"}</div>
+  <div>Result: {"content": "..."}</div>
+</details>
+```
+
 ---
 
 ## Remaining Known Issues
