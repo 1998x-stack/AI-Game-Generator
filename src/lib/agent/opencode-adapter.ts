@@ -87,6 +87,11 @@ export class OpenCodeAdapter implements AgentSDK {
       // passed back unchanged in subsequent multi-turn calls
       const reasoningContent = (msg as Record<string, unknown>)?.reasoning_content as string | undefined;
 
+      // Emit reasoning content so user can see the model's thinking
+      if (reasoningContent) {
+        onEvent({ type: "reasoning", data: { content: reasoningContent } });
+      }
+
       // Text response
       if (msg?.content) {
         onEvent({ type: "message", data: { content: msg.content } });
@@ -105,7 +110,10 @@ export class OpenCodeAdapter implements AgentSDK {
           const toolName = tc.function.name;
           const tool = tools.find((t) => t.name === toolName);
 
-          onEvent({ type: "tool_call", data: { name: toolName } });
+          let args: Record<string, unknown> = {};
+          try { args = JSON.parse(tc.function.arguments); } catch { /* ignore */ }
+
+          onEvent({ type: "tool_call", data: { name: toolName, args } });
 
           if (!tool) {
             currentMessages.push({
@@ -114,13 +122,6 @@ export class OpenCodeAdapter implements AgentSDK {
               content: JSON.stringify({ error: `Unknown tool: ${toolName}` }),
             });
             continue;
-          }
-
-          let args: Record<string, unknown> = {};
-          try {
-            args = JSON.parse(tc.function.arguments);
-          } catch {
-            // empty args
           }
 
           const result = await tool.execute(args, this.sessionId);

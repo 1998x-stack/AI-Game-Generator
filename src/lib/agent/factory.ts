@@ -10,7 +10,8 @@ export type AgentEventType =
   | "status"
   | "question"
   | "done"
-  | "error";
+  | "error"
+  | "reasoning";
 
 export interface AgentEvent {
   type: AgentEventType;

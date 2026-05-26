@@ -63,8 +63,11 @@ export async function POST(request: Request) {
             case "message":
               emit("message", event.data);
               break;
+            case "reasoning":
+              emit("reasoning", event.data);
+              break;
             case "tool_call":
-              emit("status", { message: `Running: ${event.data.name}...` });
+              emit("tool_call", event.data);
               break;
             case "question":
               emit("question", event.data);

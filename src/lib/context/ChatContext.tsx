@@ -178,6 +178,26 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
             type: "error",
           });
           break;
+        case "reasoning":
+          addMessage({
+            id: genId(),
+            role: "agent",
+            content: data.content as string,
+            timestamp: Date.now(),
+            type: "reasoning",
+          });
+          break;
+        case "tool_call":
+          addMessage({
+            id: genId(),
+            role: "agent",
+            content: data.name as string,
+            timestamp: Date.now(),
+            type: "tool_call",
+            toolName: data.name as string,
+            toolCalls: [{ name: data.name as string, args: data.args as Record<string, unknown> || {} }],
+          });
+          break;
         case "build-complete": {
           const html = data.html as string;
           if (buildCallbackRef.current) {
