@@ -155,6 +155,23 @@ The phased spec docs are the source of truth. Every verification checklist item 
 
 Three different session identification mechanisms were in play (cookies, headers, hardcoded "default"). Standardize on cookies via `getSessionId()` for all API routes.
 
+### 20. Dark Reader / Browser Extension Hydration
+
+Browser extensions like Dark Reader, Grammarly, and similar tools inject `data-*` attributes and inline styles into the DOM after SSR. These attributes don't exist in the server-rendered HTML, causing React hydration mismatches:
+
+```
+Server: <html lang="en" className="...">
+Client: <html lang="en" className="..." data-darkreader-mode="dynamic" data-darkreader-scheme="dark" ...>
+❌ Hydration mismatch — attributes differ
+```
+
+**Fix**: Add `suppressHydrationWarning` to the `<html>` tag in `layout.tsx`:
+```tsx
+<html lang="en" suppressHydrationWarning className="...">
+```
+
+This tells React to ignore attribute differences on `<html>` and its children caused by browser extensions. Without it, every page load logs a hydration error. The actual DOM is correct — the extension just mutates it before React can hydrate.
+
 ---
 
 ## Remaining Known Issues
