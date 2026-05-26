@@ -83,6 +83,10 @@ export class OpenCodeAdapter implements AgentSDK {
       const finishReason = choice.finish_reason;
       const msg = choice.message;
 
+      // DeepSeek thinking models return reasoning_content that MUST be
+      // passed back unchanged in subsequent multi-turn calls
+      const reasoningContent = (msg as Record<string, unknown>)?.reasoning_content as string | undefined;
+
       // Text response
       if (msg?.content) {
         onEvent({ type: "message", data: { content: msg.content } });
@@ -90,7 +94,12 @@ export class OpenCodeAdapter implements AgentSDK {
 
       // Tool calls
       if (msg?.tool_calls && msg.tool_calls.length > 0) {
-        currentMessages.push({ role: "assistant", content: msg.content || "", tool_calls: msg.tool_calls });
+        currentMessages.push({
+          role: "assistant",
+          content: msg.content || "",
+          ...(reasoningContent ? { reasoning_content: reasoningContent } : {}),
+          tool_calls: msg.tool_calls,
+        });
 
         for (const tc of msg.tool_calls) {
           const toolName = tc.function.name;
