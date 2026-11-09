@@ -296,3 +296,15 @@ Built with:
 ---
 
 **Start creating games with natural language — no coding required.** 🎮
+
+## P3 · Preview security boundary (2026-11-09)
+
+Generated HTML and scripts run in an **opaque-origin sandbox** (`sandbox="allow-scripts"`, deliberately **without** `allow-same-origin`), so generated games cannot use the application's DOM, cookies or localStorage as their own origin. The preview uses `srcDoc`, and the parent only accepts `game-error` messages whose `event.source` matches the current preview frame. Error text is length-bounded before being forwarded to chat.
+
+```bash
+npm ci
+node --test tests/sandbox-security.test.mjs
+npx tsc --noEmit
+```
+
+The CI protects this specific sandbox boundary and TypeScript contract; it is **not** a full security audit of generated JS, build server, workspace or authentication. **This application requires a server** and cannot be deployed directly as a secrets-bearing static GitHub Pages site. Generated games are untrusted and should not be promoted to downloadable executables without separate inspection.

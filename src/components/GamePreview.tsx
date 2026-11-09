@@ -22,11 +22,16 @@ export default function GamePreview() {
 
   useEffect(() => {
     const handler = (event: MessageEvent) => {
-      if (event.data?.type === "game-error") {
-        const msg = event.data.message || "Unknown game error";
-        const line = event.data.line ? ` (line ${event.data.line})` : "";
-        sendMessage(`Game error: ${msg}${line}. Please fix this.`);
-      }
+      // The sandbox has an opaque "null" origin: validate the actual sender,
+      // not event.origin, which is shared by unrelated sandboxed frames.
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      if (event.data === null || typeof event.data !== "object" ||
+          event.data.type !== "game-error") return;
+      const msg = typeof event.data.message === "string"
+        ? event.data.message.slice(0, 300) : "Unknown game error";
+      const line = Number.isInteger(event.data.line) && event.data.line > 0
+        ? ` (line ${event.data.line})` : "";
+      sendMessage(`Game error: ${msg}${line}. Please fix this.`);
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
@@ -72,7 +77,7 @@ export default function GamePreview() {
 
       <div className="px-3 py-1 border-t border-zinc-700 bg-zinc-800">
         <p className="text-xs text-zinc-600">
-          sandbox=&quot;allow-scripts allow-same-origin&quot;
+          sandbox=&quot;allow-scripts&quot; · isolated origin
         </p>
       </div>
     </div>
