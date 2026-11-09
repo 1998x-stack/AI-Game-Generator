@@ -23,7 +23,7 @@ jobs:
         run: |
           npm run dev -- --hostname 127.0.0.1 > /tmp/p3-next.log 2>&1 &
           for i in $(seq 1 60); do
-            if curl --fail --silent --output /dev/null http://127.0.0.1:3000/__p3_probe; then
+            if curl --fail --silent --output /dev/null http://127.0.0.1:3000/p3-sandbox-probe; then
               exit 0
             fi
             sleep 2

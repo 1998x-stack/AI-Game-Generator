@@ -1,7 +1,7 @@
 const { test, expect } = require("@playwright/test");
 
 test("real generated srcdoc cannot read parent storage or DOM", async ({ page }) => {
-  await page.goto("http://127.0.0.1:3000/__p3_probe");
+  await page.goto("http://127.0.0.1:3000/p3-sandbox-probe");
   await page.evaluate(() => {
     localStorage.setItem("p3-browser-secret", "must-not-leak");
   });
@@ -23,6 +23,6 @@ test("real generated srcdoc cannot read parent storage or DOM", async ({ page })
 });
 
 test("probe is a local-only route and not production surface", async ({ page }) => {
-  await page.goto("http://127.0.0.1:3000/__p3_probe");
+  await page.goto("http://127.0.0.1:3000/p3-sandbox-probe");
   await expect(page.getByRole("heading", { name: /Dev-only generated game preview isolation probe/ })).toBeVisible();
 });
