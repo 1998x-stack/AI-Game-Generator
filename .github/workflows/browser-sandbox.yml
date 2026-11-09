@@ -1,0 +1,43 @@
+name: Real browser game sandbox isolation
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  browser-isolation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Install isolated Chromium for actual sandbox policy check
+        run: |
+          npm install --no-save --package-lock=false @playwright/test@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Start local Next development server
+        run: |
+          npm run dev -- --hostname 127.0.0.1 > /tmp/p3-next.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl --fail --silent --output /dev/null http://127.0.0.1:3000/__p3_probe; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/p3-next.log
+          exit 1
+      - name: Validate opaque iframe origin with Chromium
+        run: npx playwright test tests/browser-sandbox.spec.cjs --workers=1
+      - name: Capture browser-test diagnostic artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-sandbox-browser-failure
+          path: |
+            test-results/
+            /tmp/p3-next.log
+          if-no-files-found: ignore

@@ -308,3 +308,7 @@ npx tsc --noEmit
 ```
 
 The CI protects this specific sandbox boundary and TypeScript contract; it is **not** a full security audit of generated JS, build server, workspace or authentication. **This application requires a server** and cannot be deployed directly as a secrets-bearing static GitHub Pages site. Generated games are untrusted and should not be promoted to downloadable executables without separate inspection.
+
+### P3 browser isolation regression
+
+In addition to the static sandbox contract, the **Real browser game sandbox isolation** workflow uses actual Chromium and the production `SandboxIframe` React component, mounted only at a development-only probe page. The test verifies generated `srcdoc` code cannot read parent DOM or `localStorage` and that messages from the wrong browser window are not accepted by the probe. The route returns not-found in production. This checks **one meaningful browser isolation boundary**; it is not a penetration test or a substitute for reviewing the build server, generated third-party imports, authentication or secrets.
